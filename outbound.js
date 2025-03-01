@@ -4,6 +4,8 @@ import dotenv from "dotenv";
 import fastifyFormBody from "@fastify/formbody";
 import fastifyWs from "@fastify/websocket";
 import Twilio from "twilio";
+import cors from "@fastify/cors"  // <-- Add this
+
 
 // Load environment variables from .env file
 dotenv.config();
@@ -30,6 +32,14 @@ if (
 
 // Initialize Fastify server
 const fastify = Fastify();
+
+// Register CORS
+await fastify.register(cors, {
+  origin: ["https://automatic-space-eureka-96jp7rv9x763944-3000.app.github.dev", "http://localhost:3000"],
+  methods: ["GET", "POST", "OPTIONS"]
+})
+
+
 fastify.register(fastifyFormBody);
 fastify.register(fastifyWs);
 
