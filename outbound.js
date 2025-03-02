@@ -268,6 +268,22 @@ fastify.register(async fastifyInstance => {
   });
 });
 
+// Route to end a call programmatically
+fastify.post("/end-call", async (request, reply) => {
+  const { callSid } = request.body;
+
+  if (!callSid) {
+    return reply.code(400).send({ error: "Missing callSid" });
+  }
+
+  try {
+    await twilioClient.calls(callSid).update({ status: "completed" });
+    reply.send({ success: true, message: `Call ${callSid} ended` });
+  } catch (error) {
+    console.error(`Failed to end call ${callSid}:`, error);
+    reply.code(500).send({ success: false, error: "Failed to end call" });
+  }
+});
 
 const callClientMap = new Map(); // Store WebSockets linked to callSid
 
