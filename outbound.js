@@ -175,19 +175,56 @@ fastify.register(async fastifyInstance => {
         elevenLabsWs.on("message", (data) => {
           try {
             const message = JSON.parse(data);
+        
             switch (message.type) {
               case "agent_response":
                 sendToFrontend({ event: "transcript", speaker: "Agent", text: message.agent_response_event?.agent_response });
                 break;
-
+        
               case "user_transcript":
                 sendToFrontend({ event: "transcript", speaker: "User", text: message.user_transcription_event?.user_transcript });
                 break;
+        
+              case "audio":
+                if (streamSid) {
+                  if (message.audio?.chunk) {
+                    const audioData = {
+                      event: "media",
+                      streamSid,
+                      media: {
+                        payload: message.audio.chunk,
+                      },
+                    };
+                    ws.send(JSON.stringify(audioData));  // This sends audio back to Twilio
+                  } else if (message.audio_event?.audio_base_64) {
+                    const audioData = {
+                      event: "media",
+                      streamSid,
+                      media: {
+                        payload: message.audio_event.audio_base_64,
+                      },
+                    };
+                    ws.send(JSON.stringify(audioData));  // This sends audio back to Twilio
+                  }
+                } else {
+                  console.log("[ElevenLabs] Received audio but no StreamSid yet");
+                }
+                break;
+        
+              case "interruption":
+                if (streamSid) {
+                  ws.send(JSON.stringify({ event: "clear", streamSid }));
+                }
+                break;
+        
+              default:
+                console.log(`[ElevenLabs] Unhandled message type: ${message.type}`);
             }
           } catch (error) {
             console.error("Error processing message from ElevenLabs:", error);
           }
         });
+        
 
         elevenLabsWs.on("close", () => console.log("[ElevenLabs] Disconnected"));
         elevenLabsWs.on("error", console.error);
