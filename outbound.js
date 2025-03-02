@@ -240,17 +240,37 @@ fastify.register(async fastifyInstance => {
                   }
                   break;
 
-                case "agent_response":
-                  console.log(
-                    `[Twilio] Agent response: ${message.agent_response_event?.agent_response}`
-                  );
-                  break;
-
-                case "user_transcript":
-                  console.log(
-                    `[Twilio] User transcript: ${message.user_transcription_event?.user_transcript}`
-                  );
-                  break;
+                  case "agent_response": {
+                    const agentText = message.agent_response_event?.agent_response || ""
+                    console.log(`[Twilio] Agent response: ${agentText}`)
+                  
+                    // Forward the agent's text to the front end
+                    // This is the *same* ws used by the front end after calling /outbound-media-stream
+                    if (ws.readyState === WebSocket.OPEN) {
+                      ws.send(JSON.stringify({
+                        event: "transcript",
+                        speaker: "Agent",
+                        text: agentText
+                      }))
+                    }
+                    break
+                  }
+                  
+                  case "user_transcript": {
+                    const userText = message.user_transcription_event?.user_transcript || ""
+                    console.log(`[Twilio] User transcript: ${userText}`)
+                  
+                    // Forward the user's text to the front end
+                    if (ws.readyState === WebSocket.OPEN) {
+                      ws.send(JSON.stringify({
+                        event: "transcript",
+                        speaker: "User",
+                        text: userText
+                      }))
+                    }
+                    break
+                  }
+                  
 
                 default:
                   console.log(
