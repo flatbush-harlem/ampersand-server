@@ -35,7 +35,7 @@ const fastify = Fastify();
 
 // Register CORS
 await fastify.register(cors, {
-  origin: ["https://automatic-space-eureka-96jp7rv9x763944-3000.app.github.dev", "http://localhost:3000"],
+  origin: ["https://automatic-space-eureka-96jp7rv9x763944-3000.app.github.dev", "http://localhost:3000", "https://phonecall-ui.vercel.app"],
   methods: ["GET", "POST", "OPTIONS"]
 })
 
